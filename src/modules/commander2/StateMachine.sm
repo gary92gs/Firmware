@@ -1,0 +1,97 @@
+
+%start Map1::MANUAL
+%class StateMachine
+%header   StateMachine.h
+%include <uORB/topics/vehicle_status_flags.h>
+
+%map Map1
+%%
+// State			Transition												Next State	Action(s)
+
+Default
+{
+
+	ManualControl		[]		MANUAL		{}
+	AcroControl		[]		ACRO		{}
+	RattitudeControl		[]		RATTITUDE		{}
+	
+
+	AltitudeControl		[ctxt.status_flags().condition_local_altitude_valid]		ALTCTL		{}
+
+	PositionControl		[ctxt.status_flags().condition_local_altitude_valid &&
+						ctxt.status_flags().condition_local_position_valid]			POSCTL		{}
+
+	AutoLoiterControl		[ctxt.status_flags().condition_global_position_valid]		AUTO_LOITER		{}
+
+}
+
+
+MANUAL
+Entry { enterManual(); }
+{
+
+    Run        nil            { RejectRequest(); }
+				
+}
+
+ACRO
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+RATTITUDE
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+ALTCTL
+{
+				EOS				MANUAL				{Acceptable();}	
+}
+
+POSCTL
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_LOITER
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_FOLLOW_TARGET
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_MISSION
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_RTL
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_TAKEOFF
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_LAND
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_PRECLAND
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+AUTO_OFFBOARD
+{
+				EOS				MANUAL				{Acceptable();}
+}
+
+%%
