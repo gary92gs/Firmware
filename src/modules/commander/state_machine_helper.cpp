@@ -998,15 +998,7 @@ bool prearm_check(orb_advert_t *mavlink_log_pub, const vehicle_status_flags_s &s
 		prearm_ok = false;
 	}
 
-	// Arm Requirements: authorization
-	if (arm_requirements & ARM_REQ_ARM_AUTH_BIT) {
-		if (arm_auth_check() != vehicle_command_ack_s::VEHICLE_RESULT_ACCEPTED) {
-			// feedback provided in arm_auth_check
-			prearm_ok = false;
-		}
-	}
-
-	// safety button (check last)
+	// safety button
 	if (prearm_ok && safety.safety_switch_available && !safety.safety_off) {
 		// Fail transition if we need safety switch press
 		if (prearm_ok && reportFailures) {
@@ -1014,6 +1006,15 @@ bool prearm_check(orb_advert_t *mavlink_log_pub, const vehicle_status_flags_s &s
 		}
 
 		prearm_ok = false;
+	}
+
+	// Arm Requirements: authorization
+	// check last, and only if everything else has passed
+	if ((arm_requirements & ARM_REQ_ARM_AUTH_BIT) && prearm_ok) {
+		if (arm_auth_check() != vehicle_command_ack_s::VEHICLE_RESULT_ACCEPTED) {
+			// feedback provided in arm_auth_check
+			prearm_ok = false;
+		}
 	}
 
 	return prearm_ok;
