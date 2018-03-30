@@ -168,7 +168,6 @@ static orb_advert_t power_button_state_pub = nullptr;
 static volatile bool thread_should_exit = false;	/**< daemon exit flag */
 static volatile bool thread_running = false;		/**< daemon status flag */
 
-static bool _usb_telemetry_active = false;
 static hrt_abstime commander_boot_timestamp = 0;
 
 static unsigned int leds_counter;
@@ -1748,7 +1747,7 @@ Commander::run()
 
 				/* set (and don't reset) telemetry via USB as active once a MAVLink connection is up */
 				if (telemetry.type == telemetry_status_s::TELEMETRY_STATUS_RADIO_TYPE_USB) {
-					_usb_telemetry_active = true;
+					status_flags.usb_connected = true;
 				}
 
 				if (telemetry.heartbeat_time > 0) {
@@ -1786,9 +1785,6 @@ Commander::run()
 					usleep(400000);
 					px4_shutdown_request(true, false);
 				}
-
-				/* finally judge the USB connected state based on software detection */
-				status_flags.usb_connected = _usb_telemetry_active;
 			}
 		}
 
