@@ -87,6 +87,9 @@ public:
 
 	void enable_hil();
 
+	// TODO: only temporarily static until low priority thread is removed
+	static bool preflight_check(bool report);
+
 private:
 
 	// Subscriptions
