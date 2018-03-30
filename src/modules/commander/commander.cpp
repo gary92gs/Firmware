@@ -1252,7 +1252,6 @@ Commander::run()
 	status.data_link_lost = true;
 	status_flags.offboard_control_loss_timeout = false;
 
-	status_flags.condition_system_prearm_error_reported = false;
 	status_flags.condition_system_hotplug_timeout = false;
 
 	status.timestamp = hrt_absolute_time();
@@ -2517,7 +2516,6 @@ Commander::run()
 					}
 
 					/* got link again or new */
-					status_flags.condition_system_prearm_error_reported = false;
 					status_changed = true;
 
 					telemetry_lost[i] = false;
