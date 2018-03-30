@@ -390,7 +390,7 @@ int commander_main(int argc, char *argv[])
 	}
 
 	if (!strcmp(argv[1], "check")) {
-		bool checkres = prearm_check(&mavlink_log_pub, true, &status_flags, battery, arm_requirements, hrt_elapsed_time(&commander_boot_timestamp));
+		bool checkres = prearm_check(&mavlink_log_pub, status_flags, battery, arm_requirements, hrt_elapsed_time(&commander_boot_timestamp));
 		PX4_INFO("Prearm check: %s", checkres ? "OK" : "FAILED");
 
 		return 0;
@@ -1721,19 +1721,20 @@ Commander::run()
 				    /* and the system is not already armed (and potentially flying) */
 				    !armed.armed) {
 
-					hotplug_timeout = hrt_elapsed_time(&commander_boot_timestamp) > HOTPLUG_SENS_TIMEOUT;
+					hotplug_timeout = (hrt_elapsed_time(&commander_boot_timestamp) > HOTPLUG_SENS_TIMEOUT);
+
 					/* flag the checks as reported for this link when we actually report them */
 					telemetry_preflight_checks_reported[i] = hotplug_timeout;
 
 					/* provide RC and sensor status feedback to the user */
 					if (status.hil_state == vehicle_status_s::HIL_STATE_ON) {
 						/* HITL configuration: check only RC input */
-						Preflight::preflightCheck(&mavlink_log_pub, false, false,
+						status_flags.condition_system_sensors_initialized = Preflight::preflightCheck(&mavlink_log_pub, false, false,
 								(status.rc_input_mode == vehicle_status_s::RC_IN_MODE_DEFAULT), false,
 								 true, is_vtol(&status), false, false, hrt_elapsed_time(&commander_boot_timestamp));
 					} else {
 						/* check sensors also */
-						Preflight::preflightCheck(&mavlink_log_pub, true, checkAirspeed,
+						status_flags.condition_system_sensors_initialized = Preflight::preflightCheck(&mavlink_log_pub, true, checkAirspeed,
 								(status.rc_input_mode == vehicle_status_s::RC_IN_MODE_DEFAULT), arm_requirements & ARM_REQ_GPS_BIT,
 								 true, is_vtol(&status), hotplug_timeout, false, hrt_elapsed_time(&commander_boot_timestamp));
 					}
