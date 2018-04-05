@@ -40,14 +40,17 @@
 #		* px4_generate_state_machine
 #
 
+include(CMakeParseArguments)
+include(common/px4_base)
+
 #=============================================================================
 #
-#	px4_generate_state_machine
+#	px4_state_machine_compiler
 #
-#	Generates airframes.xml
+#	state machine compiler
 #
 #	Usage:
-#		px4_generate_airframes_xml(OUT <airframe-xml-file>)
+#		px4_state_machine_compiler()
 #
 #	Input:
 #		XML : the airframes.xml file
@@ -57,13 +60,53 @@
 #		OUT	: the generated source files
 #
 #	Example:
-#		px4_generate_airframes_xml(OUT airframes.xml)
+#		px4_state_machine_compiler()
 #
-function(px4_generate_airframes_xml)
+function(px4_state_machine_compiler)
 	px4_parse_function_args(
-		NAME px4_generate_airframes_xml
-		ONE_VALUE BOARD
-		REQUIRED BOARD
+		NAME px4_state_machine_compiler
+		ONE_VALUE STATE_MACHINE
+		REQUIRED STATE_MACHINE
 		ARGN ${ARGN})
+
+	# MAIN STATE MACHINE
+	add_custom_command(OUTPUT ${STATE_MACHINE}_sm.cpp ${STATE_MACHINE}_sm.h
+		COMMAND
+			java -jar ${PX4_SOURCE_DIR}/Tools/smc/bin/Smc.jar
+				-nocatch -noex -c++ -crtp -cast static_cast -stack 10
+				-d ${CMAKE_CURRENT_BINARY_DIR}
+				${CMAKE_CURRENT_SOURCE_DIR}/${STATE_MACHINE}.sm
+		DEPENDS
+			${STATE_MACHINE}.sm
+			git_smc
+	)
+	add_custom_target(generate_${STATE_MACHINE} DEPENDS ${STATE_MACHINE}_sm.cpp)
+
+	add_custom_command(OUTPUT ${STATE_MACHINE}_sm.dot ${STATE_MACHINE}_sm.png
+		COMMAND
+			java -jar ${PX4_SOURCE_DIR}/Tools/smc/bin/Smc.jar
+				-graph -glevel 1
+				-d ${CMAKE_CURRENT_BINARY_DIR}
+				${CMAKE_CURRENT_SOURCE_DIR}/${STATE_MACHINE}.sm
+		COMMAND
+			dot -T png -o ${STATE_MACHINE}_sm.png ${STATE_MACHINE}_sm.dot
+		DEPENDS
+			${STATE_MACHINE}.sm
+			git_smc
+	)
+	add_custom_target(generate_${STATE_MACHINE}_graph DEPENDS ${STATE_MACHINE}_sm.dot)
+
+	add_custom_command(OUTPUT ${STATE_MACHINE}_sm.html
+		COMMAND
+			java -jar ${PX4_SOURCE_DIR}/Tools/smc/bin/Smc.jar
+				-table
+				-d ${CMAKE_CURRENT_BINARY_DIR}
+				${CMAKE_CURRENT_SOURCE_DIR}/${STATE_MACHINE}.sm
+		DEPENDS
+			${STATE_MACHINE}.sm
+			git_smc
+		USES_TERMINAL
+	)
+	add_custom_target(generate_${STATE_MACHINE}_table DEPENDS ${STATE_MACHINE}_sm.html)
 
 endfunction()

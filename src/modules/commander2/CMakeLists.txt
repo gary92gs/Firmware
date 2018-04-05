@@ -31,47 +31,11 @@
 #
 ############################################################################
 
+include(common/smc)
 
 px4_add_git_submodule(TARGET git_smc PATH ${PX4_SOURCE_DIR}/Tools/smc)
 
-add_custom_command(OUTPUT StateMachine_sm.cpp
-	COMMAND
-		java -jar ${PX4_SOURCE_DIR}/Tools/smc/bin/Smc.jar
-			-nocatch -noex -c++ -crtp -cast static_cast -stack 10
-			-d ${CMAKE_CURRENT_BINARY_DIR}
-			${CMAKE_CURRENT_SOURCE_DIR}/StateMachine.sm
-	DEPENDS
-		StateMachine.sm
-		git_smc
-)
-add_custom_target(generate_state_machine DEPENDS StateMachine_sm.cpp)
-
-add_custom_command(OUTPUT StateMachine_sm.dot StateMachine_sm.png
-	COMMAND
-		java -jar ${PX4_SOURCE_DIR}/Tools/smc/bin/Smc.jar
-			-graph -glevel 0
-			-d ${CMAKE_CURRENT_BINARY_DIR}
-			${CMAKE_CURRENT_SOURCE_DIR}/StateMachine.sm
-	COMMAND
-		dot -T png -o StateMachine_sm.png StateMachine_sm.dot
-	DEPENDS
-		StateMachine.sm
-		git_smc
-)
-add_custom_target(generate_state_machine_graph DEPENDS StateMachine_sm.dot)
-
-add_custom_command(OUTPUT StateMachine_sm.html
-	COMMAND
-		java -jar ${PX4_SOURCE_DIR}/Tools/smc/bin/Smc.jar
-			-table
-			-d ${CMAKE_CURRENT_BINARY_DIR}
-			${CMAKE_CURRENT_SOURCE_DIR}/StateMachine.sm
-	DEPENDS
-		StateMachine.sm
-		git_smc
-	USES_TERMINAL
-)
-add_custom_target(generate_state_machine_table DEPENDS StateMachine_sm.html)
+px4_state_machine_compiler(STATE_MACHINE MainStateMachine)
 
 px4_add_module(
 	MODULE modules__commander2
@@ -85,10 +49,11 @@ px4_add_module(
 	COMPILE_FLAGS
 	SRCS
 		Commander.cpp
-		StateMachine.cpp
-		${CMAKE_CURRENT_BINARY_DIR}/StateMachine_sm.cpp
+		MainStateMachine.cpp
+		${CMAKE_CURRENT_BINARY_DIR}/MainStateMachine_sm.cpp
+		${CMAKE_CURRENT_BINARY_DIR}/MainStateMachine_sm.h
 	DEPENDS
-		generate_state_machine
-		generate_state_machine_graph
-		generate_state_machine_table
+		generate_MainStateMachine
+		generate_MainStateMachine_graph
+		generate_MainStateMachine_table
 	)

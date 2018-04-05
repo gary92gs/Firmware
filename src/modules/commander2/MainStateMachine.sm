@@ -1,0 +1,51 @@
+
+%start main_state_transition::MANUAL
+%class MainStateMachine
+%header   MainStateMachine.h
+%include <uORB/topics/vehicle_status_flags.h>
+
+%map main_state_transition
+%%
+// State			Transition												Next State	Action(s)
+
+Default
+{
+
+	ManualControl			[]															MANUAL			{}
+
+	AcroControl				[]															ACRO			{}
+
+	RattitudeControl		[]															RATTITUDE		{}
+	
+
+	AltitudeControl			[ctxt.status_flags().condition_local_altitude_valid]		ALTCTL			{}
+
+	PositionControl			[ctxt.status_flags().condition_local_altitude_valid &&
+							ctxt.status_flags().condition_local_position_valid]			POSCTL			{}
+
+	AutoLoiterControl		[ctxt.status_flags().condition_global_position_valid]		AUTO_LOITER		{}
+
+	AutoMissionControl		[ctxt.status_flags().condition_global_position_valid && 
+							ctxt.status_flags().condition_auto_mission_available]		AUTO_LOITER		{}
+
+	AutoRTLControl			[ctxt.status_flags().condition_global_position_valid &&
+							ctxt.status_flags().condition_home_position_valid]			AUTO_LOITER		{}
+	
+
+}
+
+MANUAL {}
+ACRO {}
+RATTITUDE {}
+ALTCTL {}
+POSCTL {}
+AUTO_LOITER {}
+AUTO_FOLLOW_TARGET {}
+AUTO_MISSION {}
+AUTO_RTL {}
+AUTO_TAKEOFF {}
+AUTO_LAND {}
+AUTO_PRECLAND {}
+AUTO_OFFBOARD {}
+
+%%
