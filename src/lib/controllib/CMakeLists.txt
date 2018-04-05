@@ -44,6 +44,7 @@ px4_add_module(
 		BlockLimitSym.cpp
 		BlockLowPass.cpp
 		BlockLowPass2.cpp
+		BlockGyroCorrected.cpp
 	DEPENDS
 		platforms__common
 	)

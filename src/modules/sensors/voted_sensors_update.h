@@ -41,6 +41,7 @@
 
 #include "parameters.h"
 
+#include <controllib/BlockBoardRotation.hpp>
 #include <drivers/drv_accel.h>
 #include <drivers/drv_gyro.h>
 #include <drivers/drv_mag.h>
@@ -77,7 +78,7 @@ public:
 	 * @param parameters parameter values. These do not have to be initialized when constructing this object.
 	 * Only when calling init(), they have to be initialized.
 	 */
-	VotedSensorsUpdate(const Parameters &parameters, bool hil_enabled);
+	VotedSensorsUpdate(bool hil_enabled);
 
 	/**
 	 * initialize subscriptions etc.
@@ -253,10 +254,9 @@ private:
 	uint64_t _last_mag_timestamp[MAG_COUNT_MAX]; /**< latest full timestamp */
 	uint64_t _last_baro_timestamp[BARO_COUNT_MAX]; /**< latest full timestamp */
 
-	matrix::Dcmf	_board_rotation;	/**< rotation matrix for the orientation that the board is mounted */
+	control::BlockBoardRotation	_board_rotation;	/**< rotation matrix for the orientation that the board is mounted */
 	matrix::Dcmf	_mag_rotation[MAG_COUNT_MAX];	/**< rotation matrix for the orientation that the external mag0 is mounted */
 
-	const Parameters &_parameters;
 	const bool _hil_enabled; /**< is hardware-in-the-loop mode enabled? */
 
 	float _accel_diff[3][2];	/**< filtered accel differences between IMU units (m/s/s) */

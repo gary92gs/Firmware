@@ -31,7 +31,7 @@
  *
  ****************************************************************************/
 
-#include <px4_module.h>
+#include <controllib/BlockGyroCorrected.hpp>
 #include <drivers/drv_hrt.h>
 #include <ecl/attitude_fw/ecl_pitch_controller.h>
 #include <ecl/attitude_fw/ecl_roll_controller.h>
@@ -41,6 +41,7 @@
 #include <mathlib/mathlib.h>
 #include <px4_config.h>
 #include <px4_defines.h>
+#include <px4_module.h>
 #include <px4_posix.h>
 #include <px4_tasks.h>
 #include <systemlib/param/param.h>
@@ -122,7 +123,9 @@ private:
 	vehicle_rates_setpoint_s		_rates_sp {};		/* attitude rates setpoint */
 	vehicle_status_s			_vehicle_status {};	/**< vehicle status */
 
-	Subscription<airspeed_s>			_airspeed_sub;
+	Subscription<airspeed_s>		_airspeed_sub;
+
+	control::BlockGyroCorrected		_gyro_corrected;
 
 	perf_counter_t	_loop_perf;			/**< loop performance counter */
 	perf_counter_t	_nonfinite_input_perf;		/**< performance counter for non finite input */

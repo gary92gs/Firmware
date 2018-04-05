@@ -238,7 +238,7 @@ Sensors::Sensors(bool hil_enabled) :
 	_hil_enabled(hil_enabled),
 	_loop_perf(perf_alloc(PC_ELAPSED, "sensors")),
 	_rc_update(_parameters),
-	_voted_sensors_update(_parameters, hil_enabled)
+	_voted_sensors_update(hil_enabled)
 {
 	initialize_parameter_handles(_parameter_handles);
 

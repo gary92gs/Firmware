@@ -117,6 +117,16 @@ FixedwingAttitudeControl::FixedwingAttitudeControl() :
 
 	/* fetch initial parameter values */
 	parameters_update();
+
+	_att_sub = orb_subscribe(ORB_ID(vehicle_attitude));
+	_att_sp_sub = orb_subscribe(ORB_ID(vehicle_attitude_setpoint));
+	_vcontrol_mode_sub = orb_subscribe(ORB_ID(vehicle_control_mode));
+	_params_sub = orb_subscribe(ORB_ID(parameter_update));
+	_manual_sub = orb_subscribe(ORB_ID(manual_control_setpoint));
+	_global_pos_sub = orb_subscribe(ORB_ID(vehicle_global_position));
+	_vehicle_status_sub = orb_subscribe(ORB_ID(vehicle_status));
+	_vehicle_land_detected_sub = orb_subscribe(ORB_ID(vehicle_land_detected));
+	_battery_status_sub = orb_subscribe(ORB_ID(battery_status));
 }
 
 FixedwingAttitudeControl::~FixedwingAttitudeControl()
@@ -236,6 +246,8 @@ FixedwingAttitudeControl::parameters_update()
 	_wheel_ctrl.set_k_ff(_parameters.w_ff);
 	_wheel_ctrl.set_integrator_max(_parameters.w_integrator_max);
 	_wheel_ctrl.set_max_rate(math::radians(_parameters.w_rmax));
+
+	_gyro_corrected.updateParams();
 
 	return PX4_OK;
 }
@@ -404,35 +416,6 @@ FixedwingAttitudeControl::vehicle_land_detected_poll()
 
 void FixedwingAttitudeControl::run()
 {
-	/*
-	 * do subscriptions
-	 */
-	_att_sub = orb_subscribe(ORB_ID(vehicle_attitude));
-	_att_sp_sub = orb_subscribe(ORB_ID(vehicle_attitude_setpoint));
-	_vcontrol_mode_sub = orb_subscribe(ORB_ID(vehicle_control_mode));
-	_params_sub = orb_subscribe(ORB_ID(parameter_update));
-	_manual_sub = orb_subscribe(ORB_ID(manual_control_setpoint));
-	_global_pos_sub = orb_subscribe(ORB_ID(vehicle_global_position));
-	_vehicle_status_sub = orb_subscribe(ORB_ID(vehicle_status));
-	_vehicle_land_detected_sub = orb_subscribe(ORB_ID(vehicle_land_detected));
-	_battery_status_sub = orb_subscribe(ORB_ID(battery_status));
-
-	parameters_update();
-
-	/* get an initial update for all sensor and status data */
-	vehicle_setpoint_poll();
-	vehicle_control_mode_poll();
-	vehicle_manual_poll();
-	vehicle_status_poll();
-	vehicle_land_detected_poll();
-
-	/* wakeup source */
-	px4_pollfd_struct_t fds[1];
-
-	/* Setup of loop */
-	fds[0].fd = _att_sub;
-	fds[0].events = POLLIN;
-
 	while (!should_exit()) {
 
 		/* only update parameters if they changed */
@@ -448,24 +431,11 @@ void FixedwingAttitudeControl::run()
 			parameters_update();
 		}
 
-		/* wait for up to 500ms for data */
-		int pret = px4_poll(&fds[0], (sizeof(fds) / sizeof(fds[0])), 100);
-
-		/* timed out - periodic check for _task_should_exit, etc. */
-		if (pret == 0) {
-			continue;
-		}
-
-		/* this is undesirable but not much we can do - might want to flag unhappy status */
-		if (pret < 0) {
-			PX4_WARN("poll error %d, %d", pret, errno);
-			continue;
-		}
-
-		perf_begin(_loop_perf);
-
 		/* only run controller if attitude changed */
-		if (fds[0].revents & POLLIN) {
+		if (_gyro_corrected.poll()) {
+
+			perf_begin(_loop_perf);
+
 			static uint64_t last_run = 0;
 			float deltaT = (hrt_absolute_time() - last_run) / 1000000.0f;
 			last_run = hrt_absolute_time();
@@ -476,6 +446,7 @@ void FixedwingAttitudeControl::run()
 			}
 
 			/* load local copies */
+			_gyro_corrected.update();
 			orb_copy(ORB_ID(vehicle_attitude), _att_sub, &_att);
 
 			/* get current rotation matrix and euler angles from control state quaternions */
@@ -627,9 +598,9 @@ void FixedwingAttitudeControl::run()
 				control_input.roll = euler_angles.phi();
 				control_input.pitch = euler_angles.theta();
 				control_input.yaw = euler_angles.psi();
-				control_input.body_x_rate = _att.rollspeed;
-				control_input.body_y_rate = _att.pitchspeed;
-				control_input.body_z_rate = _att.yawspeed;
+				control_input.body_x_rate = _gyro_corrected.get()(0);
+				control_input.body_y_rate = _gyro_corrected.get()(1);
+				control_input.body_z_rate = _gyro_corrected.get()(2);
 				control_input.roll_setpoint = roll_sp;
 				control_input.pitch_setpoint = pitch_sp;
 				control_input.yaw_setpoint = yaw_sp;
@@ -829,9 +800,9 @@ void FixedwingAttitudeControl::run()
 
 			/* lazily publish the setpoint only once available */
 			_actuators.timestamp = hrt_absolute_time();
-			_actuators.timestamp_sample = _att.timestamp;
+			_actuators.timestamp_sample = _gyro_corrected.timestamp();
 			_actuators_airframe.timestamp = hrt_absolute_time();
-			_actuators_airframe.timestamp_sample = _att.timestamp;
+			_actuators_airframe.timestamp_sample = _gyro_corrected.timestamp();
 
 			/* Only publish if any of the proper modes are enabled */
 			if (_vcontrol_mode.flag_control_rates_enabled ||
