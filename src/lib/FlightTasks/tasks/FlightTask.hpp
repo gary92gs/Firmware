@@ -126,8 +126,8 @@ protected:
 	 */
 	void _resetSetpoints();
 
-private:
 	uORB::Subscription<vehicle_local_position_s> *_sub_vehicle_local_position{nullptr};
 
+private:
 	bool _evaluateVehiclePosition();
 };

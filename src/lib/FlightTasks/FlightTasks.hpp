@@ -49,6 +49,7 @@
 #include "tasks/FlightTaskManualStabilized.hpp"
 #include "tasks/FlightTaskOrbit.hpp"
 #include "tasks/FlightTaskSport.hpp"
+#include "tasks/FlightTaskOffboard.hpp"
 
 #include "SubscriptionArray.hpp"
 
@@ -63,6 +64,7 @@ enum class FlightTaskIndex : int {
 	PositionSmooth,
 	Orbit,
 	Sport,
+	Offboard,
 
 	Count // number of tasks
 };
@@ -136,6 +138,7 @@ private:
 		FlightTaskManualPositionSmooth position_smooth;
 		FlightTaskOrbit orbit;
 		FlightTaskSport sport;
+		FlightTaskOffboard offboard;
 	} _task_union; /**< storage for the currently active task */
 
 	FlightTask *_current_task = nullptr;
