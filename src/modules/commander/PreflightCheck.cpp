@@ -688,7 +688,7 @@ bool preflightCheck(orb_advert_t *mavlink_log_pub, const vehicle_status_s &statu
 		checkAirspeed = true;
 	}
 
-	reportFailures = (reportFailures && status_flags.condition_system_hotplug_timeout);
+	reportFailures = (reportFailures && status_flags.condition_system_hotplug_timeout && status_flags.condition_calibration_enabled);
 
 #ifdef __PX4_QURT
 	// WARNING: Preflight checks are important and should be added back when
