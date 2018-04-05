@@ -1,9 +1,10 @@
-#ifndef _H_THECONTEXT
-#define _H_THECONTEXT
+#pragma once
 
 #include <uORB/topics/vehicle_status.h>
 #include <uORB/topics/vehicle_status_flags.h>
 
+#include <px4_defines.h>
+#define TRACE PX4_INFO
 #include "MainStateMachine_sm.h"
 
 class MainStateMachine : public MainStateMachineContext<MainStateMachine>
@@ -32,5 +33,3 @@ public:
 
 	void RejectRequest() {};
 };
-
-#endif

@@ -73,7 +73,7 @@ function(px4_state_machine_compiler)
 	add_custom_command(OUTPUT ${STATE_MACHINE}_sm.cpp ${STATE_MACHINE}_sm.h
 		COMMAND
 			java -jar ${PX4_SOURCE_DIR}/Tools/smc/bin/Smc.jar
-				-nocatch -noex -c++ -crtp -cast static_cast -stack 10
+				-nocatch -noex -c++ -crtp -cast static_cast -stack 10 -nostreams
 				-d ${CMAKE_CURRENT_BINARY_DIR}
 				${CMAKE_CURRENT_SOURCE_DIR}/${STATE_MACHINE}.sm
 		DEPENDS

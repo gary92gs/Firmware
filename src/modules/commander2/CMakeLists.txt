@@ -35,6 +35,7 @@ include(common/smc)
 
 px4_add_git_submodule(TARGET git_smc PATH ${PX4_SOURCE_DIR}/Tools/smc)
 
+px4_state_machine_compiler(STATE_MACHINE ArmingStateMachine)
 px4_state_machine_compiler(STATE_MACHINE MainStateMachine)
 
 px4_add_module(
@@ -49,11 +50,16 @@ px4_add_module(
 	COMPILE_FLAGS
 	SRCS
 		Commander.cpp
+		
+		ArmingStateMachine.cpp
+		${CMAKE_CURRENT_BINARY_DIR}/ArmingStateMachine_sm.cpp
+		${CMAKE_CURRENT_BINARY_DIR}/ArmingStateMachine_sm.h				
+
 		MainStateMachine.cpp
 		${CMAKE_CURRENT_BINARY_DIR}/MainStateMachine_sm.cpp
 		${CMAKE_CURRENT_BINARY_DIR}/MainStateMachine_sm.h
+
 	DEPENDS
+		generate_ArmingStateMachine
 		generate_MainStateMachine
-		generate_MainStateMachine_graph
-		generate_MainStateMachine_table
 	)

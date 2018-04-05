@@ -1,0 +1,50 @@
+
+%start arming_state_transition::INIT
+%class ArmingStateMachine
+%header   ArmingStateMachine.h
+%include <uORB/topics/vehicle_status_flags.h>
+
+%map arming_state_transition
+%%
+// State		Transition				Next State			Action(s)
+
+INIT
+{
+				standby					STANDBY				{}
+				//RUN						STANDBY_ERROR		{}
+				reboot					REBOOT				{}
+}
+
+STANDBY
+{
+				calibrate				INIT				{}
+				sensor_error			STANDBY_ERROR		{}
+				reboot					REBOOT				{}
+
+				arm				[ctxt.preflightCheck() && ctxt.preArm()]		ARMED				{}
+				
+}
+
+ARMED
+{
+				disarm					STANDBY				{}
+				standby_error			STANDBY_ERROR		{}
+}
+
+STANDBY_ERROR
+{
+				calibrate				INIT				{}
+				reboot					REBOOT				{}
+}
+
+REBOOT
+{
+}
+
+IN_AIR_RESTORE
+{
+				arm						ARMED				{}
+				reboot					REBOOT				{}
+}
+
+%%

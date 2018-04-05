@@ -92,6 +92,7 @@ set(config_module_list
 	#
 	modules/camera_feedback
 	modules/commander
+	modules/commander2
 	modules/events
 	modules/gpio_led
 	modules/land_detector
